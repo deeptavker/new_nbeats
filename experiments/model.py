@@ -68,4 +68,4 @@ def generic(input_size: int, output_size: int,
                                                                            forecast_size=output_size),
                                                layers=layers,
                                                layer_size=layer_size)
-                                   for _ in range(stacks * 4)] + [CNNBlock()] + [MLP(input_size=output_size*4, output_size= output_size)]))
+                                   for _ in range(stacks * 5)] + [CNNBlock()] + [MLP(input_size=output_size*5, output_size= output_size)]))
