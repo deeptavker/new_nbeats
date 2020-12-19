@@ -24,7 +24,7 @@ import torch as t
 class CNNBlock(t.nn.Module):
     def __init__(self):
         super().__init__()
-        self.layers = t.nn.ModuleList([t.nn.Conv1d(1, 4, 5, 1, 2)])
+        self.layers = t.nn.ModuleList([t.nn.Conv1d(1, 5, 5, 1, 2)])
 
     def forward(self, x):
         conv_inp = x.unsqueeze(1)
@@ -89,17 +89,19 @@ class NBeats(t.nn.Module):
         
         input_mask = input_mask.flip(dims=(1,))
         
-        x1, x2, x3, x4 = self.blocks[-2](x)
-        r1, r2, r3, r4 = x1.flip(dims=(1,)), x2.flip(dims=(1,)), x3.flip(dims=(1,)), x4.flip(dims=(1,))
-        f1, f2, f3, f4 = x1[:, -1:], x2[:, -1:], x3[:, -1:], x4[:, -1:]
+        x1, x2, x3, x4, x5 = self.blocks[-2](x)
+        r1, r2, r3, r4, r5 = x1.flip(dims=(1,)), x2.flip(dims=(1,)), x3.flip(dims=(1,)), x4.flip(dims=(1,)), x5.flip(dims=(1,))
+        f1, f2, f3, f4, f5 = x1[:, -1:], x2[:, -1:], x3[:, -1:], x4[:, -1:], x5[:, -1:]
+
 
         nb_blocks = self.blocks[:-2]
         nb = len(nb_blocks)
 
-        blocks1 = nb_blocks[:nb//4]
-        blocks2 = nb_blocks[nb//4:nb*2//4]
-        blocks3 = nb_blocks[nb*2//4:nb*3//4]
-        blocks4 = nb_blocks[nb*3//4:]
+        blocks1 = nb_blocks[:nb//5]
+        blocks2 = nb_blocks[nb//5:nb*2//5]
+        blocks3 = nb_blocks[nb*2//5:nb*3//5]
+        blocks4 = nb_blocks[nb*3//5: nb*4//5 ]
+        blocks5 = nb_blocks[nb*4//5:]
 
         for i, block in enumerate(blocks1):
             backcast, block_forecast = block(r1)
@@ -120,8 +122,13 @@ class NBeats(t.nn.Module):
             backcast, block_forecast = block(r4)
             r4 = (r4 - backcast) * input_mask
             f4 = f4 + block_forecast
+            
+        for i, block in enumerate(blocks5):
+            backcast, block_forecast = block(r5)
+            r5 = (r5 - backcast) * input_mask
+            f5 = f5 + block_forecast
         
-        f= t.cat((f1,f2,f3, f4),dim=1)
+        f= t.cat((f1,f2,f3, f4, f5),dim=1)
         forecast = self.blocks[-1](f)
 
         return forecast
