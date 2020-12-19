@@ -36,6 +36,17 @@ class CNNBlock(t.nn.Module):
         out = out.transpose(0,1)
         return out
 
+class MLP(t.nn.Module):
+    def __init__(self, input_size :int, output_size: int):
+        super().__init__()
+        self.layers = t.nn.ModuleList([t.nn.Linear(in_features= input_size, out_features= output_size)])
+        
+    def forward(self, x):
+        activation = self.layers[0](x)
+        activation = t.relu(activation)
+        return activation
+    
+
 class NBeatsBlock(t.nn.Module):
     """
     N-BEATS block which takes a basis function as an argument.
@@ -82,11 +93,11 @@ class NBeats(t.nn.Module):
         
         input_mask = input_mask.flip(dims=(1,))
         
-        x1, x2, x3 = self.blocks[-1](x)
+        x1, x2, x3 = self.blocks[-2](x)
         r1, r2, r3 = x1.flip(dims=(1,)), x2.flip(dims=(1,)), x3.flip(dims=(1,))
         f1, f2, f3 = x1[:, -1:], x2[:, -1:], x3[:, -1:]
 
-        nb_blocks = self.blocks[:-1]
+        nb_blocks = self.blocks[:-2]
         nb = len(nb_blocks)
 
         blocks1 = nb_blocks[:nb//3]
@@ -108,12 +119,14 @@ class NBeats(t.nn.Module):
             r3 = (r3 - backcast) * input_mask
             f3 = f3 + block_forecast
         
-        forecast = self.combine(f1, f2, f3)
+        f= t.cat((f1,f2,f3),dim=1)
+        forecast = self.blocks[-1](f)
+        #forecast = self.combine(f1, f2, f3)
         #print(forecast)
         return forecast
         
-    def combine(self, a1, a2, a3):
-        return (a1 + a2 + a3) / 3.0
+    #def combine(self, a1, a2, a3):
+        #return (a1 + a2 + a3) / 3.0
 
 
 class GenericBasis(t.nn.Module):
