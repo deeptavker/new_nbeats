@@ -1,0 +1,1 @@
+python experiments/m3/main.py --config_path=/Users/apple/acads/nbeats/latest_nbeats/new_nbeats/storage/experiments/m3_generic/repeat=5,lookback=5,loss=MASE/config.gin run >> /Users/apple/acads/nbeats/latest_nbeats/new_nbeats/storage/experiments/m3_generic/repeat=5,lookback=5,loss=MASE/instance.log 2>&1

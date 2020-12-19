@@ -24,15 +24,11 @@ import torch as t
 class CNNBlock(t.nn.Module):
     def __init__(self):
         super().__init__()
-        self.layers = t.nn.ModuleList([t.nn.Conv1d(1, 3, 5, 1, 2)])
+        self.layers = t.nn.ModuleList([t.nn.Conv1d(1, 4, 5, 1, 2)])
 
     def forward(self, x):
-        #d3 = x.shape[0]
-        #d1 = x.shape[1]
         conv_inp = x.unsqueeze(1)
-        #conv_inp = x.reshape((d1, 1, d3)) #doubtful 
         out = self.layers[0](conv_inp)
-        #out = out.reshape(3, d3, d1) #doubtful
         out = out.transpose(0,1)
         return out
 
@@ -93,16 +89,17 @@ class NBeats(t.nn.Module):
         
         input_mask = input_mask.flip(dims=(1,))
         
-        x1, x2, x3 = self.blocks[-2](x)
-        r1, r2, r3 = x1.flip(dims=(1,)), x2.flip(dims=(1,)), x3.flip(dims=(1,))
-        f1, f2, f3 = x1[:, -1:], x2[:, -1:], x3[:, -1:]
+        x1, x2, x3, x4 = self.blocks[-2](x)
+        r1, r2, r3, r4 = x1.flip(dims=(1,)), x2.flip(dims=(1,)), x3.flip(dims=(1,)), x4.flip(dims=(1,))
+        f1, f2, f3, f4 = x1[:, -1:], x2[:, -1:], x3[:, -1:], x4[:, -1:]
 
         nb_blocks = self.blocks[:-2]
         nb = len(nb_blocks)
 
-        blocks1 = nb_blocks[:nb//3]
-        blocks2 = nb_blocks[nb//3:nb*2//3]
-        blocks3 = nb_blocks[nb*2//3:]
+        blocks1 = nb_blocks[:nb//4]
+        blocks2 = nb_blocks[nb//4:nb*2//4]
+        blocks3 = nb_blocks[nb*2//4:nb*3//4]
+        blocks4 = nb_blocks[nb*3//4:]
 
         for i, block in enumerate(blocks1):
             backcast, block_forecast = block(r1)
@@ -118,15 +115,16 @@ class NBeats(t.nn.Module):
             backcast, block_forecast = block(r3)
             r3 = (r3 - backcast) * input_mask
             f3 = f3 + block_forecast
+
+        for i, block in enumerate(blocks4):
+            backcast, block_forecast = block(r4)
+            r4 = (r4 - backcast) * input_mask
+            f4 = f4 + block_forecast
         
-        f= t.cat((f1,f2,f3),dim=1)
+        f= t.cat((f1,f2,f3, f4),dim=1)
         forecast = self.blocks[-1](f)
-        #forecast = self.combine(f1, f2, f3)
-        #print(forecast)
+
         return forecast
-        
-    #def combine(self, a1, a2, a3):
-        #return (a1 + a2 + a3) / 3.0
 
 
 class GenericBasis(t.nn.Module):

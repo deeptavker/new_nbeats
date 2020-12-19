@@ -11,7 +11,7 @@
 # materials are the property of Element AI Inc. and may be subject to patent
 # protection. No license to patents is granted hereunder (whether express or
 # implied). Copyright © 2020 Element AI Inc. All rights reserved.
-
+ 
 """
 Shortcut functions to create N-BEATS models.
 """
@@ -68,4 +68,4 @@ def generic(input_size: int, output_size: int,
                                                                            forecast_size=output_size),
                                                layers=layers,
                                                layer_size=layer_size)
-                                   for _ in range(stacks * 3)] + [CNNBlock()] + [MLP(input_size=output_size*3, output_size= output_size)]))
+                                   for _ in range(stacks * 4)] + [CNNBlock()] + [MLP(input_size=output_size*4, output_size= output_size)]))
