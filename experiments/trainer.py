@@ -67,7 +67,7 @@ def trainer(snapshot_manager: SnapshotManager,
 
         for param_group in optimizer.param_groups:
             param_group["lr"] = learning_rate * 0.5 ** (i // lr_decay_step)
-        print(float(training_loss))
+        #print(float(training_loss))
         snapshot_manager.register(iteration=i,
                                   training_loss=float(training_loss),
                                   validation_loss=np.nan, model=model,
